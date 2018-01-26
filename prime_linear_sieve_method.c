@@ -3,7 +3,7 @@
 long *pri_stk;
 long init_pri_stk(long b){
     int *prime = NULL;
-    prime = (int *)malloc(1000000001*sizeof(int));
+    prime = (int *)malloc(b*sizeof(int));
     long top = 0;
     prime[0] = prime[1] = 1;
     for(long i = 2 ; i < b ; i++){
@@ -37,9 +37,10 @@ int is_palindrome(long i) {
     return 1;
 }
 int main() {
-    pri_stk = (long *)malloc(50847535*sizeof(long));
+    
     long a,b;
     scanf("%ld %ld",&a,&b);
+    pri_stk = (long *)malloc(b*sizeof(long));
     long top = init_pri_stk(b);
     long i = binary_search(0,top,a);
     for(; i < top; i++)
