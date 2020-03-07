@@ -1,42 +1,102 @@
 #include<stdio.h>
 #include<stdlib.h>
-int is_prime(long x,int times){
-    //Miller-Rabin算法
-/*  x为待测试数，times为测试次数   */
-    long a,b,r;
-    for (srand(x+rand()); times--;){
-        a = ((x-2)*rand()*1./RAND_MAX)+2;
-        b = x - 1;
-        for (r = 1; b; b >>= 1){
-            b&1?r=r*a%x:0;
-            a=a*a%x;
-        }
-        if (r%x!=1) return 0;
-    }
-    return 1;
+#include<stdbool.h>
+int QuickMultiplication(register int base, register int times, const int kMod) {
+	register int ret=0;
+	base %= kMod;
+	while (times) {
+		if (times & 1) ret = (ret + base) % kMod;
+		base = (base << 1) % kMod,
+		times >>= 1;
+	}
+	return ret % kMod;
+}
+int QuickPower(register int base, register int times, const int kMod) {
+  register int ret=1;
+	base %= kMod;
+	while (times) {
+		if (times & 1) ret = QuickMultiplication(ret, base, kMod);
+		base = QuickMultiplication(base, base, kMod),
+		times >>= 1;
+	}
+	return ret % kMod;
+}
+bool MillerRabin(const int n) {
+	if (n <= 2) return n == 2;
+	if (!(n & 1)) return false;
+	register int times=0;
+	register int a, x, y, u=n - 1;
+	while (!(u & 1)) ++times, u >>= 1;
+	for (register int i=0; i < 10; ++i) {
+		a = rand() % (n - 1) + 1,
+		x = QuickPower(a, u, n);
+		for (register int j=0; j < times; ++j) {
+			y = QuickMultiplication(x, x, n);
+			if (y == 1 && x != 1 && x != n - 1) return false;
+			x = y;
+		}
+		if (x != 1) return false;
+	}
+	return true;
+}
+int power(int base, int times)
+{
+    return times<=0?1:base*power(base, times-1);
 }
 
-int is_palindrome(long i) {
-    //判断i是否为回文数
-    int a[10], j = 0;
-    for( ; j < 10; j++ , i/=10) {
-        a[j] = i%10;
-        if(i == 0) break;
+int nDigits(int n)
+{
+    int nd=0;
+    while(n/power(10,nd) != 0)
+    {
+        nd++;
     }
-    for(int k = 0; k < j/2; k++) {
-        if(a[k] != a[j - k - 1]) return 0;
-    }
-    return 1;
+    return nd;
 }
-int main(){
-    //输出从a到b的所有质回文数
-    long a,b;
-    scanf("%ld %ld",&a,&b);
-    long i = a + (a%2 == 0);
-    if(a<=2) printf("2\n");
-    for(; i <= b; i+=2) {
-        if(is_prime(i,2) && is_palindrome(i))
-            printf("%ld,", i);
+int reverse(int n)
+{
+    int r=0;
+    while(n!=0)
+    {
+        r *= 10;
+        r += n%10;
+        n /= 10;
     }
-    return 0;
+    return r;
+}
+int nextPalindrome(int n)
+{
+    if(n==0)
+        return 1;
+    int nd=nDigits(n);
+    int upper, lowerLevel;
+    lowerLevel=power(10,nd/2);
+    upper = n/lowerLevel;
+    if(nd%2==0)
+    {
+        if(n%lowerLevel>=reverse(upper))
+            upper++;
+        return reverse(upper) + upper * lowerLevel;
+    }
+    else
+    {
+        if(n%(lowerLevel*10)>=reverse(upper))
+            upper++;
+        return reverse(upper/10) + upper * lowerLevel;
+    }
+}
+void printPrimePalindromes(int min, int max)
+{
+    // print all prime palindromes in [min, max]
+    for(int i=min; i<=max; i=nextPalindrome(i))
+    {
+        if(MillerRabin(i))
+            printf("%d\n",i);
+    }
+}
+int main()
+{
+    int a,b;
+    scanf("%d %d",&a,&b);
+    printPrimePalindromes(a,b);
 }
